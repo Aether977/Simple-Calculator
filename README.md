@@ -20,4 +20,4 @@ An all-in-one, highly customizable HTML5 calculator designed to go beyond basic 
 *   **[Nerdamer](https://nerdamer.com/)** (For symbolic algebra and solving equations)
 *   **HTML5 Canvas API** (For custom graph rendering)
 ## 👨‍💻 Author
-**Aether977
+**Aether977(Aether)
