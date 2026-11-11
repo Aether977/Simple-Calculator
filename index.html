@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Advanced Calculator</title>
+<!-- icon -->
+ <link rel="icon" type="image/png" href="https://cdn.pixabay.com/photo/2023/03/06/04/26/calculator-7832583_1280.png">
+<!-- Dependencies for Math and Algebra -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/nerdamer@latest/all.min.js"></script>
+
+<style>
+    /* CSS Variables for Theming */
+    :root {
+        --bg-page: #f0f2f5;
+        --calc-bg: #ffffff;
+        --text-main: #1a1a1a;
+        --text-muted: #666666;
+        --display-bg: #f8f9fa;
+        --key-bg: #ffffff;
+        --key-border: #d1d5db;
+        --key-hover: #f3f4f6;
+        --key-active: #e5e7eb;
+        --accent: #2563eb;
+        --accent-text: #ffffff;
+        --radius: 8px;
+    }
+
+    body.dark-theme {
+        --bg-page: #1e1e1e;
+        --calc-bg: #2d2d2d;
+        --text-main: #f3f4f6;
+        --text-muted: #9ca3af;
+        --display-bg: #1f1f1f;
+        --key-bg: #3f3f3f;
+        --key-border: #525252;
+        --key-hover: #4a4a4a;
+        --key-active: #555555;
+        --accent: #3b82f6;
+        --accent-text: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background-color: var(--bg-page);
+        font-family: Tahoma, Verdana, Segoe, sans-serif;
+        color: var(--text-main);
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    .app-container {
+        flex: 1 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 30px;
+        padding-bottom: 30px;
+    }
+
+    .main-wrapper {
+        width: 460px;
+        max-width: 95vw;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    /* Top Controls */
+    .top-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--calc-bg);
+        padding: 10px;
+        border-radius: var(--radius);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border: 1px solid var(--key-border);
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .mode-tabs {
+        display: flex;
+        gap: 5px;
+    }
+
+    .tab-btn {
+        background: transparent;
+        border: none;
+        padding: 8px 12px;
+        border-radius: calc(var(--radius) / 2);
+        cursor: pointer;
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 0.85rem;
+        font-family: inherit;
+        transition: all 0.2s;
+    }
+
+    .tab-btn:hover { background: var(--key-hover); }
+    .tab-btn.active {
+        background: var(--accent);
+        color: var(--accent-text);
+    }
+
+    .top-selectors {
+        display: flex;
+        gap: 8px;
+    }
+
+    .top-select {
+        background: var(--key-bg);
+        color: var(--text-main);
+        border: 1px solid var(--key-border);
+        padding: 6px;
+        border-radius: calc(var(--radius) / 2);
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-family: inherit;
+        outline: none;
+    }
+
+    /* Main Calculator Body */
+    .calculator {
+        background-color: var(--calc-bg);
+        border-radius: var(--radius);
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: 1px solid var(--key-border);
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        transition: all 0.3s;
+    }
+
+    /* Display */
+    .display-container {
+        background-color: var(--display-bg);
+        border: 1px solid var(--key-border);
+        border-radius: var(--radius);
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        min-height: 90px;
+        word-break: break-all;
+    }
+
+    .expression {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        min-height: 20px;
+        width: 100%;
+        text-align: right;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        line-height: 1.4;
+    }
+
+    .result {
+        font-size: 1.8rem;
+        font-weight: 500;
+        width: 100%;
+        text-align: right;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        margin-top: 10px;
+        line-height: 1.2;
+    }
+
+    /* Keypad Grid */
+    .keypad {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+    }
+
+    button {
+        font-family: inherit;
+        font-size: 1.1rem;
+        padding: 15px 0;
+        border: 1px solid var(--key-border);
+        border-radius: calc(var(--radius) * 0.75);
+        background-color: var(--key-bg);
+        color: var(--text-main);
+        cursor: pointer;
+        transition: all 0.1s;
+        user-select: none;
+    }
+
+    button:hover { background-color: var(--key-hover); }
+    button:active { background-color: var(--key-active); transform: scale(0.98); }
+
+    button.op { color: var(--accent); font-weight: bold; }
+    button.equals { background-color: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+    button.equals:hover { opacity: 0.9; }
+    button.clear { color: #dc2626; }
+    
+    button.eq-btn { color: #059669; font-weight: bold; }
+    button.const { color: #8b5cf6; font-weight: bold; }
+
+    /* Graphing UI */
+    .graph-controls {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .graph-input {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid var(--key-border);
+        border-radius: var(--radius);
+        background: var(--key-bg);
+        color: var(--text-main);
+        font-family: monospace;
+        font-size: 1rem;
+        box-sizing: border-box;
+    }
+
+    .graph-select {
+        padding: 10px;
+        border: 1px solid var(--key-border);
+        border-radius: var(--radius);
+        background: var(--key-bg);
+        color: var(--text-main);
+        font-family: inherit;
+        outline: none;
+    }
+
+    .graph-btn {
+        width: 100%;
+        padding: 14px;
+        background: var(--accent);
+        color: var(--accent-text);
+        border: none;
+        border-radius: var(--radius);
+        font-weight: bold;
+        font-size: 1.05rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        margin-bottom: 10px;
+    }
+
+    .graph-btn:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
+    .graph-btn:active { transform: translateY(1px); box-shadow: none; }
+
+    .canvas-container {
+        width: 100%;
+        height: 300px;
+        background: var(--display-bg);
+        border: 1px solid var(--key-border);
+        border-radius: var(--radius);
+        position: relative;
+        overflow: hidden;
+    }
+
+    canvas { display: block; width: 100%; height: 100%; }
+
+    /* Conversion Tools */
+    .tools-panel {
+        background: var(--display-bg);
+        border: 1px solid var(--key-border);
+        padding: 10px;
+        border-radius: var(--radius);
+        font-size: 0.85rem;
+        margin-top: 10px;
+    }
+
+    .tools-panel summary {
+        cursor: pointer;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: var(--accent);
+    }
+
+    .conv-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .conv-grid input {
+        width: 100%;
+        padding: 6px;
+        border: 1px solid var(--key-border);
+        border-radius: 4px;
+        background: var(--key-bg);
+        color: var(--text-main);
+        box-sizing: border-box;
+    }
+
+    .conv-btns {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .conv-btns button {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+        border-radius: 4px;
+    }
+
+    #convResult {
+        margin-top: 10px;
+        font-weight: bold;
+        color: var(--accent);
+        min-height: 20px;
+    }
+
+    /* Custom Theme Panel */
+    .custom-panel {
+        display: none;
+        background: var(--calc-bg);
+        padding: 15px;
+        border-radius: var(--radius);
+        border: 1px solid var(--key-border);
+        font-size: 0.85rem;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .custom-panel label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .custom-panel input[type="color"] {
+        border: none;
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+        background: none;
+        padding: 0;
+    }
+
+    .custom-panel input[type="range"] {
+        width: 100%;
+        grid-column: span 2;
+    }
+
+    /* Footer Credits */
+    .credit {
+        flex-shrink: 0;
+        padding: 20px;
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        line-height: 1.5;
+        border-top: 1px solid var(--key-border);
+        background-color: var(--calc-bg);
+    }
+    .credit .main { font-weight: 600; color: var(--text-main); }
+    .credit .sub { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+</style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="main-wrapper">
+            <!-- Top Controls -->
+            <div class="top-controls">
+                <div class="mode-tabs">
+                    <button class="tab-btn active" onclick="switchMode('standard')">Standard</button>
+                    <button class="tab-btn" onclick="switchMode('algebra')">Algebra</button>
+                    <button class="tab-btn" onclick="switchMode('graphing')">Graphing</button>
+                </div>
+                
+                <div class="top-selectors">
+                    <select class="top-select" id="outputFormat" onchange="recalculate()">
+                        <option value="decimal">Decimal</option>
+                        <option value="fraction">Fraction</option>
+                        <option value="scientific">Powers of 10</option>
+                        <option value="exact_pi">Keep π</option>
+                    </select>
+
+                    <select class="top-select" id="themeSelect" onchange="changeTheme(this.value)">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                        <option value="custom">Custom...</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Main Calculator UI -->
+            <div class="calculator">
+                <!-- Standard & Algebra Display -->
+                <div class="display-container" id="mainDisplay">
+                    <div class="expression" id="expression"></div>
+                    <div class="result" id="result">0</div>
+                </div>
+
+                <!-- Standard Keypad -->
+                <div class="keypad" id="standardKeypad">
+                    <button class="clear" onclick="clearAll()">C</button>
+                    <button onclick="insert('(')">(</button>
+                    <button onclick="insert(')')">)</button>
+                    <button class="op" onclick="insert('^')">^</button>
+                    <button class="op" onclick="insert('/')">÷</button>
+
+                    <button onclick="insert('7')">7</button>
+                    <button onclick="insert('8')">8</button>
+                    <button onclick="insert('9')">9</button>
+                    <button class="op" onclick="insert('*')">×</button>
+                    <button onclick="backspace()">⌫</button>
+
+                    <button onclick="insert('4')">4</button>
+                    <button onclick="insert('5')">5</button>
+                    <button onclick="insert('6')">6</button>
+                    <button class="op" onclick="insert('-')">-</button>
+                    <button class="equals" onclick="calculateStandard()" style="grid-row: span 3; height: 100%;">=</button>
+
+                    <button onclick="insert('1')">1</button>
+                    <button onclick="insert('2')">2</button>
+                    <button onclick="insert('3')">3</button>
+                    <button class="op" onclick="insert('+')">+</button>
+
+                    <button onclick="toggleSign()">+/-</button>
+                    <button onclick="insert('0')">0</button>
+                    <button onclick="insert('.')">.</button>
+                    <button class="const" onclick="insert('pi')">π</button>
+                </div>
+
+                <!-- Algebra Keypad -->
+                <div class="keypad" id="algebraKeypad" style="display: none;">
+                    <button class="clear" onclick="clearAll()">C</button>
+                    <button onclick="insert('x')">x</button>
+                    <button onclick="insert('y')">y</button>
+                    <button class="op" onclick="insert('=')">=</button>
+                    <button class="op" onclick="insert('^')">^</button>
+
+                    <button onclick="insert('7')">7</button>
+                    <button onclick="insert('8')">8</button>
+                    <button onclick="insert('9')">9</button>
+                    <button class="op" onclick="insert('+')">+</button>
+                    <button onclick="backspace()">⌫</button>
+
+                    <button onclick="insert('4')">4</button>
+                    <button onclick="insert('5')">5</button>
+                    <button onclick="insert('6')">6</button>
+                    <button class="op" onclick="insert('-')">-</button>
+                    <button class="equals" onclick="solveAlgebra()" style="grid-row: span 3; height: 100%;">Solve</button>
+
+                    <button onclick="insert('1')">1</button>
+                    <button onclick="insert('2')">2</button>
+                    <button onclick="insert('3')">3</button>
+                    <button class="op" onclick="insert('*')">×</button>
+
+                    <button onclick="insert('0')">0</button>
+                    <button class="eq-btn" onclick="addEquationLine()" style="grid-column: span 2;">+ Eq</button>
+                    <button onclick="insert('(')">(</button>
+                    <button onclick="insert(')')">)</button>
+                </div>
+
+                <!-- Graphing UI -->
+                <div id="graphingUI" style="display: none; flex-direction: column;">
+                    <div class="graph-controls">
+                        <select id="graphType" class="graph-select">
+                            <option value="cartesian">Cartesian (Line)</option>
+                            <option value="quadrants">Cartesian (Quadrants)</option>
+                            <option value="polar">Polar</option>
+                        </select>
+                        <input type="text" id="graphInput" class="graph-input" placeholder="e.g., y = x^2 or r = 2*cos(theta)" value="y = x^2">
+                    </div>
+                    
+                    <button class="graph-btn" onclick="plotGraph()">Plot Graph</button>
+
+                    <div class="canvas-container">
+                        <canvas id="graphCanvas"></canvas>
+                    </div>
+
+                    <details class="tools-panel">
+                        <summary>Conversions & Utilities</summary>
+                        <div class="conv-grid">
+                            <input type="number" id="convX" placeholder="X / R">
+                            <input type="number" id="convY" placeholder="Y / Theta">
+                        </div>
+                        <div class="conv-btns">
+                            <button onclick="cartToPolar()">Cartesian → Polar</button>
+                            <button onclick="polarToCart()">Polar → Cartesian</button>
+                            <button onclick="radToDeg()">Rad → Deg</button>
+                            <button onclick="degToRad()">Deg → Rad</button>
+                        </div>
+                        <div id="convResult"></div>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Custom Theme Panel -->
+            <div class="custom-panel" id="customPanel">
+                <label>Background <input type="color" id="colorBg" value="#f0f2f5" oninput="applyCustomTheme()"></label>
+                <label>Calculator <input type="color" id="colorCalc" value="#ffffff" oninput="applyCustomTheme()"></label>
+                <label>Keys <input type="color" id="colorKey" value="#ffffff" oninput="applyCustomTheme()"></label>
+                <label>Text <input type="color" id="colorText" value="#1a1a1a" oninput="applyCustomTheme()"></label>
+                <label>Accent <input type="color" id="colorAccent" value="#2563eb" oninput="applyCustomTheme()"></label>
+                
+                <label style="grid-column: span 2; display: flex; flex-direction: column; align-items: flex-start; gap: 5px;">
+                    Corner Radius: <span id="radiusVal">8px</span>
+                    <input type="range" id="radiusSlider" min="0" max="25" value="8" oninput="applyCustomTheme()">
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="credit">
+        <div class="main">Made by Aether977 from Github</div>
+    </footer>
+
+    <script>
+        // --- State Management ---
+        let currentExpression = '';
+        let currentMode = 'standard';
+
+        const expDisplay = document.getElementById('expression');
+        const resDisplay = document.getElementById('result');
+
+        // --- UI Updates ---
+        function updateDisplay() {
+            expDisplay.textContent = currentExpression;
+            expDisplay.scrollLeft = expDisplay.scrollWidth;
+        }
+
+        function insert(val) {
+            if (resDisplay.textContent === 'Error') clearAll();
+            currentExpression += val;
+            updateDisplay();
+        }
+
+        function toggleSign() {
+            // Basic negation toggle for the current expression
+            if (currentExpression.startsWith('-')) {
+                currentExpression = currentExpression.substring(1);
+            } else if (currentExpression.length > 0) {
+                currentExpression = '-' + currentExpression;
+            } else {
+                currentExpression = '-';
+            }
+            updateDisplay();
+        }
+
+        function addEquationLine() {
+            if (currentExpression.length > 0 && !currentExpression.endsWith('\n')) {
+                currentExpression += '\n';
+                updateDisplay();
+            }
+        }
+
+        function backspace() {
+            currentExpression = currentExpression.slice(0, -1);
+            updateDisplay();
+        }
+
+        function clearAll() {
+            currentExpression = '';
+            resDisplay.textContent = '0';
+            updateDisplay();
+        }
+
+        function recalculate() {
+            if (!currentExpression) return;
+            if (currentMode === 'standard') calculateStandard();
+            else if (currentMode === 'algebra') solveAlgebra();
+        }
+
+        // --- Mode Switching ---
+        function switchMode(mode) {
+            currentMode = mode;
+            clearAll();
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.getElementById('mainDisplay').style.display = mode === 'graphing' ? 'none' : 'flex';
+            document.getElementById('standardKeypad').style.display = mode === 'standard' ? 'grid' : 'none';
+            document.getElementById('algebraKeypad').style.display = mode === 'algebra' ? 'grid' : 'none';
+            document.getElementById('graphingUI').style.display = mode === 'graphing' ? 'flex' : 'none';
+
+            if (mode === 'graphing') {
+                resizeCanvas();
+                drawEmptyGrid();
+            }
+        }
+
+        // --- Custom Formatting Functions ---
+        
+        function floatToFraction(val) {
+            if (Number.isInteger(val)) return val.toString();
+            if (!isFinite(val) || isNaN(val)) return val.toString();
+            
+            let sign = val < 0 ? -1 : 1;
+            val = Math.abs(val);
+            
+            let tolerance = 1.0E-6;
+            let h1 = 1, h2 = 0, k1 = 0, k2 = 1, b = val;
+            do {
+                let a = Math.floor(b);
+                let aux = h1; h1 = a * h1 + h2; h2 = aux;
+                aux = k1; k1 = a * k1 + k2; k2 = aux;
+                b = 1 / (b - a);
+            } while (Math.abs(val - h1 / k1) > val * tolerance && k1 <= 10000);
+            
+            if (k1 > 10000) return math.format(val, {precision: 10});
+            if (k1 === 1) return (sign * h1).toString();
+            return (sign * h1) + "/" + k1;
+        }
+
+        function toScientific(val) {
+            if (typeof val !== 'number') return val.toString();
+            if (val === 0) return '0';
+            let str = val.toExponential(5);
+            let [mantissa, exponent] = str.split('e');
+            mantissa = parseFloat(mantissa).toString();
+            let expSign = exponent[0] === '+' ? '' : '-';
+            let expVal = Math.abs(parseInt(exponent));
+            return `${mantissa} × 10^${expSign}${expVal}`;
+        }
+
+        function formatResult(val, format) {
+            if (val === undefined || val === null) return 'Error';
+            if (typeof val === 'string') return val;
+
+            try {
+                if (typeof val === 'number') {
+                    if (format === 'fraction') return floatToFraction(val);
+                    if (format === 'scientific') return toScientific(val);
+                    return math.format(val, { precision: 12 });
+                } else {
+                    if (format === 'fraction') return math.format(val, { fraction: 'ratio' });
+                    if (format === 'scientific') return math.format(val, { notation: 'scientific', precision: 6 }).replace(/e\+?/g, ' × 10^');
+                    return math.format(val, { precision: 12 });
+                }
+            } catch (e) {
+                return val.toString();
+            }
+        }
+
+        // --- Math Logic ---
+        function calculateStandard() {
+            if (!currentExpression) return;
+            let format = document.getElementById('outputFormat').value;
+            
+            try {
+                if (format === 'exact_pi') {
+                    // Use Nerdamer to keep pi symbolic
+                    let result = nerdamer(currentExpression).evaluate().toString();
+                    result = result.replace(/pi/g, 'π');
+                    resDisplay.textContent = result;
+                } else {
+                    let result = math.evaluate(currentExpression);
+                    resDisplay.textContent = formatResult(result, format);
+                }
+            } catch (e) {
+                resDisplay.textContent = 'Error';
+            }
+        }
+
+        function solveAlgebra() {
+            if (!currentExpression) return;
+            
+            let lines = currentExpression.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            let format = document.getElementById('outputFormat').value;
+            
+            try {
+                let resultStr = '';
+                
+                if (lines.length > 1) {
+                    let varsUsed = [];
+                    if (currentExpression.includes('x')) varsUsed.push('x');
+                    if (currentExpression.includes('y')) varsUsed.push('y');
+                    
+                    if (varsUsed.length === 0) throw new Error("No variables found");
+                    
+                    let solutions = nerdamer.solveEquations(lines, varsUsed);
+                    
+                    if (Array.isArray(solutions)) {
+                        resultStr = solutions.map(sol => {
+                            let varName = sol[0];
+                            let val = sol[1];
+                            
+                            if (format === 'decimal') {
+                                val = nerdamer(val).evaluate().text('decimals');
+                            } else if (format === 'scientific') {
+                                let decStr = nerdamer(val).evaluate().text('decimals');
+                                let num = parseFloat(decStr);
+                                val = isNaN(num) ? decStr : toScientific(num);
+                            } else if (format === 'exact_pi') {
+                                val = val.replace(/pi/g, 'π');
+                            }
+                            return `${varName} = ${val}`;
+                        }).join('\n');
+                    } else {
+                        resultStr = solutions.toString();
+                    }
+                } 
+                else {
+                    let expr = lines[0];
+                    if (expr.includes('=')) {
+                        let variable = expr.includes('y') && !expr.includes('x') ? 'y' : 'x';
+                        let sol = nerdamer.solve(expr, variable).toString();
+                        sol = sol.replace(/^\[|\]$/g, '');
+                        
+                        if (format === 'decimal') {
+                            sol = sol.split(',').map(s => nerdamer(s).evaluate().text('decimals')).join(', ');
+                        } else if (format === 'scientific') {
+                            sol = sol.split(',').map(s => {
+                                let decStr = nerdamer(s).evaluate().text('decimals');
+                                let num = parseFloat(decStr);
+                                return isNaN(num) ? decStr : toScientific(num);
+                            }).join(', ');
+                        } else if (format === 'exact_pi') {
+                            sol = sol.replace(/pi/g, 'π');
+                        }
+                        resultStr = `${variable} = ${sol}`;
+                    } else {
+                        let evaluated = nerdamer(expr).evaluate();
+                        if (format === 'decimal') {
+                            resultStr = evaluated.text('decimals');
+                        } else if (format === 'scientific') {
+                            let decStr = evaluated.text('decimals');
+                            let num = parseFloat(decStr);
+                            resultStr = isNaN(num) ? decStr : toScientific(num);
+                        } else if (format === 'exact_pi') {
+                            resultStr = evaluated.toString().replace(/pi/g, 'π');
+                        } else {
+                            resultStr = evaluated.toString();
+                        }
+                    }
+                }
+                
+                resDisplay.textContent = resultStr;
+            } catch (e) {
+                resDisplay.textContent = 'Error';
+            }
+        }
+
+        // --- Graphing Engine ---
+        const canvas = document.getElementById('graphCanvas');
+        const ctx = canvas.getContext('2d');
+        let scale = 30; 
+        let cx, cy;
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            cx = canvas.width / 2;
+            cy = canvas.height / 2;
+            drawEmptyGrid();
+        }
+
+        window.addEventListener('resize', () => {
+            if (currentMode === 'graphing') resizeCanvas();
+        });
+
+        function drawEmptyGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const type = document.getElementById('graphType').value;
+            
+            ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--key-border').trim();
+            ctx.lineWidth = 1;
+
+            if (type === 'polar') {
+                for (let r = 1; r <= 10; r++) {
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, r * scale, 0, 2 * Math.PI);
+                    ctx.stroke();
+                }
+                for (let i = 0; i < 12; i++) {
+                    let angle = (i * Math.PI) / 6;
+                    ctx.beginPath();
+                    ctx.moveTo(cx, cy);
+                    ctx.lineTo(cx + Math.cos(angle) * 10 * scale, cy - Math.sin(angle) * 10 * scale);
+                    ctx.stroke();
+                }
+            } else {
+                for (let x = -10; x <= 10; x++) {
+                    ctx.beginPath();
+                    ctx.moveTo(cx + x * scale, 0);
+                    ctx.lineTo(cx + x * scale, canvas.height);
+                    ctx.stroke();
+                }
+                for (let y = -10; y <= 10; y++) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, cy + y * scale);
+                    ctx.lineTo(canvas.width, cy + y * scale);
+                    ctx.stroke();
+                }
+            }
+
+            ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--text-main').trim();
+            ctx.lineWidth = 2;
+            
+            ctx.beginPath();
+            ctx.moveTo(0, cy); ctx.lineTo(canvas.width, cy); 
+            ctx.moveTo(cx, 0); ctx.lineTo(cx, canvas.height); 
+            ctx.stroke();
+
+            if (type === 'quadrants') {
+                ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text-muted').trim();
+                ctx.font = '14px Tahoma';
+                ctx.fillText('Q2', cx - 40, cy - 20);
+                ctx.fillText('Q1', cx + 20, cy - 20);
+                ctx.fillText('Q3', cx - 40, cy + 30);
+                ctx.fillText('Q4', cx + 20, cy + 30);
+            }
+        }
+
+        function plotGraph() {
+            if (currentMode !== 'graphing') return;
+            
+            drawEmptyGrid();
+            
+            const type = document.getElementById('graphType').value;
+            let input = document.getElementById('graphInput').value;
+            const accentColor = getComputedStyle(document.body).getPropertyValue('--accent').trim();
+
+            let expression = input.includes('=') ? input.split('=')[1] : input;
+            expression = expression.replace(/pi/g, 'Math.PI');
+
+            ctx.strokeStyle = accentColor;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+
+            try {
+                if (type === 'polar') {
+                    for (let theta = 0; theta <= 2 * Math.PI; theta += 0.01) {
+                        let r = math.evaluate(expression, { theta: theta, Math: Math });
+                        let x = r * Math.cos(theta);
+                        let y = r * Math.sin(theta);
+                        let canvasX = cx + x * scale;
+                        let canvasY = cy - y * scale;
+
+                        if (theta === 0) ctx.moveTo(canvasX, canvasY);
+                        else ctx.lineTo(canvasX, canvasY);
+                    }
+                } else {
+                    for (let x = -15; x <= 15; x += 0.05) {
+                        let y = math.evaluate(expression, { x: x, Math: Math });
+                        let canvasX = cx + x * scale;
+                        let canvasY = cy - y * scale;
+
+                        if (!isFinite(y)) continue;
+                        if (x === -15) ctx.moveTo(canvasX, canvasY);
+                        else ctx.lineTo(canvasX, canvasY);
+                    }
+                }
+                ctx.stroke();
+            } catch (e) {
+                console.error("Invalid equation");
+            }
+        }
+
+        // --- Conversion Tools Logic ---
+        function cartToPolar() {
+            let x = parseFloat(document.getElementById('convX').value);
+            let y = parseFloat(document.getElementById('convY').value);
+            if (isNaN(x) || isNaN(y)) return showConv("Please enter valid X and Y.");
+            let r = Math.sqrt(x*x + y*y);
+            let theta = Math.atan2(y, x);
+            document.getElementById('convResult').innerText = `r = ${r.toFixed(4)}, θ = ${theta.toFixed(4)} rad`;
+        }
+
+        function polarToCart() {
+            let r = parseFloat(document.getElementById('convX').value);
+            let theta = parseFloat(document.getElementById('convY').value);
+            if (isNaN(r) || isNaN(theta)) return showConv("Please enter valid R and Theta.");
+            let x = r * Math.cos(theta);
+            let y = r * Math.sin(theta);
+            document.getElementById('convResult').innerText = `x = ${x.toFixed(4)}, y = ${y.toFixed(4)}`;
+        }
+
+        function radToDeg() {
+            let rad = parseFloat(document.getElementById('convY').value) || parseFloat(document.getElementById('convX').value);
+            if (isNaN(rad)) return showConv("Enter a radian value in Theta/Y or X/R.");
+            let deg = rad * (180 / Math.PI);
+            document.getElementById('convResult').innerText = `${rad} rad = ${deg.toFixed(4)}°`;
+        }
+
+        function degToRad() {
+            let deg = parseFloat(document.getElementById('convY').value) || parseFloat(document.getElementById('convX').value);
+            if (isNaN(deg)) return showConv("Enter a degree value in Theta/Y or X/R.");
+            let rad = deg * (Math.PI / 180);
+            document.getElementById('convResult').innerText = `${deg}° = ${rad.toFixed(4)} rad`;
+        }
+
+        function showConv(msg) {
+            document.getElementById('convResult').innerText = msg;
+        }
+
+        // --- Theme Logic ---
+        function changeTheme(theme) {
+            const root = document.documentElement;
+            const panel = document.getElementById('customPanel');
+            
+            if (theme === 'light') {
+                document.body.classList.remove('dark-theme');
+                panel.style.display = 'none';
+                root.style.cssText = '';
+            } else if (theme === 'dark') {
+                document.body.classList.add('dark-theme');
+                panel.style.display = 'none';
+                root.style.cssText = '';
+            } else if (theme === 'custom') {
+                document.body.classList.remove('dark-theme');
+                panel.style.display = 'grid';
+                applyCustomTheme();
+            }
+            
+            if (currentMode === 'graphing') drawEmptyGrid();
+        }
+
+        function applyCustomTheme() {
+            const root = document.documentElement;
+            root.style.setProperty('--bg-page', document.getElementById('colorBg').value);
+            root.style.setProperty('--calc-bg', document.getElementById('colorCalc').value);
+            root.style.setProperty('--key-bg', document.getElementById('colorKey').value);
+            root.style.setProperty('--text-main', document.getElementById('colorText').value);
+            root.style.setProperty('--accent', document.getElementById('colorAccent').value);
+            root.style.setProperty('--radius', document.getElementById('radiusSlider').value + 'px');
+            
+            document.getElementById('radiusVal').textContent = document.getElementById('radiusSlider').value + 'px';
+            
+            root.style.setProperty('--display-bg', document.getElementById('colorKey').value);
+            root.style.setProperty('--key-border', '#cccccc');
+            root.style.setProperty('--text-muted', '#888888');
+
+            if (currentMode === 'graphing') drawEmptyGrid();
+        }
+
+        // --- Keyboard Support ---
+        document.addEventListener('keydown', (e) => {
+            if (currentMode === 'graphing') return;
+
+            const key = e.key;
+            if (key === 'Enter' && currentMode === 'algebra') {
+                e.preventDefault();
+                addEquationLine();
+                return;
+            }
+
+            if (/[0-9+\-*/().^=a-zA-Z]/.test(key) && key.length === 1) {
+                insert(key);
+            } else if (key === 'Enter') {
+                e.preventDefault();
+                calculateStandard();
+            } else if (key === 'Backspace') {
+                backspace();
+            } else if (key === 'Escape') {
+                clearAll();
+            }
+        });
+
+        // Initial setup
+        resizeCanvas();
+    </script>
+</body>
+</html>
