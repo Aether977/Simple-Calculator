@@ -1,0 +1,3 @@
+# Fixed language composition
+*.js linguist-language=JavaScript
+*.css linguist-language=CSS
