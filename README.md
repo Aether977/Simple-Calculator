@@ -1,8 +1,8 @@
-# Simple-Calculator 📐✨
+# Simple-Calculator
 
 An all-in-one, highly customizable HTML5 calculator designed to go beyond basic arithmetic. Built entirely with front-end technologies, it provides a seamless experience for standard calculations, symbolic algebra, and interactive graphing.
 
-## 🚀 Features
+## Features
 
 *   **Three Core Modes:**
     *   **Standard:** Fast arithmetic with support for exponents and Pi.
@@ -12,12 +12,12 @@ An all-in-one, highly customizable HTML5 calculator designed to go beyond basic 
 *   **Custom Theme Engine:** Switch between Light and Dark mode, or build your own custom theme by adjusting background colors, key colors, accent colors, and corner radius in real-time.
 *   **Built-in Conversions:** Easily convert between Cartesian ↔ Polar coordinates and Radians ↔ Degrees.
 
-## 🛠️ Technologies Used
+## Technologies Used
 
 *   **HTML5 & CSS3** (Featuring dynamic CSS variables for the theme engine)
 *   **Vanilla JavaScript** (No heavy frameworks)
 *   **[Math.js](https://mathjs.org/)** (For precision evaluation and formatting)
 *   **[Nerdamer](https://nerdamer.com/)** (For symbolic algebra and solving equations)
 *   **HTML5 Canvas API** (For custom graph rendering)
-## 👨‍💻 Author
+## Author&Creator
 **Aether977(Aether)
