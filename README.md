@@ -18,6 +18,8 @@ An all-in-one, highly customizable HTML5 calculator designed to go beyond basic 
 *   **Vanilla JavaScript** (No heavy frameworks)
 *   **[Math.js](https://mathjs.org/)** (For precision evaluation and formatting)
 *   **[Nerdamer](https://nerdamer.com/)** (For symbolic algebra and solving equations)
+*   **[Animate](https://animate.style/)** (For cool animation addons)
+*   **[Typed.js](https://mattboldt.com/demos/typed-js/)** (For typed word animations)
 *   **HTML5 Canvas API** (For custom graph rendering)
 ## Author&Creator
 **Aether977(Aether)
