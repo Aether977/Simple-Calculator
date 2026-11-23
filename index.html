@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simple Calculator</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" type="image/png" href="https://cdn.pixabay.com/photo/2023/03/06/04/26/calculator-7832583_1280.png">
+<!-- Animate.css for UI transitions -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/nerdamer@latest/all.min.js"></script>
+<!-- Typed.js for initialization animation -->
+<script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
+</head>
+<body>
+
+    <!-- Background Decoration Layer -->
+    <div id="bg-decorations"></div>
+
+    <!-- Separated Language Bar at Top Left -->
+    <div class="lang-bar" id="langBarElement">
+        <select id="langSelect" class="top-select" onchange="changeLanguage(this.value); animateElement(this, 'bounce')">
+            <option value="en">English</option>
+            <option value="de">Deutsch</option>
+            <option value="ru">Русский</option>
+            <option value="zh_cn">简体中文</option>
+            <option value="zh_tw">繁體中文</option>
+        </select>
+    </div>
+
+    <div class="app-container">
+        <div class="main-wrapper">
+            <!-- Top Controls -->
+            <div class="top-controls">
+                <div class="mode-tabs">
+                    <button class="tab-btn active" data-i18n="standard" onclick="switchMode('standard', event)">Standard</button>
+                    <button class="tab-btn" data-i18n="algebra" onclick="switchMode('algebra', event)">Algebra</button>
+                    <button class="tab-btn" data-i18n="graphing" onclick="switchMode('graphing', event)">Graphing</button>
+                    <button class="tab-btn" data-i18n="trig" onclick="switchMode('trig', event)">Trigonometry</button>
+                </div>
+                
+                <div class="top-selectors">
+                    <select class="top-select" id="outputFormat" onchange="recalculate(); animateElement(this, 'pulse')">
+                        <option value="decimal" data-i18n="decimal">Decimal</option>
+                        <option value="fraction" data-i18n="fraction">Fraction</option>
+                        <option value="scientific" data-i18n="sci">Powers of 10</option>
+                        <option value="exact_pi" data-i18n="exact_pi">Keep π</option>
+                    </select>
+
+                    <select class="top-select" id="themeSelect" onchange="changeTheme(this.value); animateElement(this, 'pulse')">
+                        <option value="light" data-i18n="light">Light</option>
+                        <option value="dark" data-i18n="dark">Dark</option>
+                        <option value="custom" data-i18n="custom">Custom...</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Main Calculator UI -->
+            <div class="calculator" id="calcBody">
+                <!-- Standard & Algebra Display -->
+                <div class="display-container" id="mainDisplay">
+                    <div class="expression" id="expression"></div>
+                    <div class="result" id="result">0</div>
+                </div>
+
+                <!-- Standard Keypad -->
+                <div class="keypad" id="standardKeypad">
+                    <button class="clear" onclick="clearAll()">C</button>
+                    <button onclick="insert('(')">(</button>
+                    <button onclick="insert(')')">)</button>
+                    <button class="op" onclick="insert('^')">^</button>
+                    <button class="op" onclick="insert('/')">÷</button>
+
+                    <button onclick="insert('7')">7</button>
+                    <button onclick="insert('8')">8</button>
+                    <button onclick="insert('9')">9</button>
+                    <button class="op" onclick="insert('*')">×</button>
+                    <button onclick="backspace()">⌫</button>
+
+                    <button onclick="insert('4')">4</button>
+                    <button onclick="insert('5')">5</button>
+                    <button onclick="insert('6')">6</button>
+                    <button class="op" onclick="insert('-')">-</button>
+                    <button class="equals" onclick="calculateStandard()" style="grid-row: span 3; height: 100%;">=</button>
+
+                    <button onclick="insert('1')">1</button>
+                    <button onclick="insert('2')">2</button>
+                    <button onclick="insert('3')">3</button>
+                    <button class="op" onclick="insert('+')">+</button>
+
+                    <button onclick="toggleSign()">+/-</button>
+                    <button onclick="insert('0')">0</button>
+                    <button onclick="insert('.')">.</button>
+                    <button class="const" onclick="insert('pi')">π</button>
+                </div>
+
+                <!-- Algebra Keypad -->
+                <div class="keypad" id="algebraKeypad" style="display: none;">
+                    <button class="clear" onclick="clearAll()">C</button>
+                    <button onclick="insert('x')">x</button>
+                    <button onclick="insert('y')">y</button>
+                    <button onclick="insert('z')">z</button>
+                    <button onclick="insert('k')">k</button>
+
+                    <button onclick="insert('(')">(</button>
+                    <button onclick="insert(')')">)</button>
+                    <button class="op" onclick="insert('^')">^</button>
+                    <button class="op" onclick="insert('=')">=</button>
+                    <button onclick="backspace()">⌫</button>
+
+                    <button onclick="insert('7')">7</button>
+                    <button onclick="insert('8')">8</button>
+                    <button onclick="insert('9')">9</button>
+                    <button class="op" onclick="insert('+')">+</button>
+                    <button class="equals" data-i18n="solve" onclick="solveAlgebra()" style="grid-row: span 3; height: 100%;">Solve</button>
+
+                    <button onclick="insert('4')">4</button>
+                    <button onclick="insert('5')">5</button>
+                    <button onclick="insert('6')">6</button>
+                    <button class="op" onclick="insert('-')">-</button>
+
+                    <button onclick="insert('1')">1</button>
+                    <button onclick="insert('2')">2</button>
+                    <button onclick="insert('3')">3</button>
+                    <button class="op" onclick="insert('*')">×</button>
+
+                    <button onclick="insert('0')">0</button>
+                    <button onclick="insert('.')">.</button>
+                    <button class="eq-btn" data-i18n="eq" onclick="addEquationLine()" style="grid-column: span 2;">+ Eq</button>
+                </div>
+
+                <!-- Graphing UI -->
+                <div id="graphingUI" style="display: none; flex-direction: column;">
+                    <div class="graph-controls">
+                        <select id="graphType" class="graph-select" onchange="updateGraphPlaceholder(); plotGraph(); animateElement(this, 'pulse')">
+                            <option value="cartesian" data-i18n="cartesian">Cartesian (Line)</option>
+                            <option value="quadrants" data-i18n="quadrants">Cartesian (Quadrants)</option>
+                            <option value="polar" data-i18n="polar">Polar</option>
+                        </select>
+                        <input type="text" id="graphInput" class="graph-input" placeholder="e.g., y = x^2" value="y = x^5" onkeydown="if(event.key==='Enter') plotGraph()">
+                    </div>
+
+                    <!-- Graph Limits -->
+                    <div class="graph-limits" id="graphLimitsContainer">
+                        <input type="number" id="graphXMin" placeholder="X-Min" value="-10">
+                        <input type="number" id="graphXMax" placeholder="X-Max" value="10">
+                        <input type="number" id="graphYMin" placeholder="Y-Min">
+                        <input type="number" id="graphYMax" placeholder="Y-Max">
+                    </div>
+                    
+                    <label class="auto-scale-wrapper">
+                        <input type="checkbox" id="autoScaleToggle" checked onchange="plotGraph(); animateElement(this, 'pulse')">
+                        <span data-i18n="auto_scale">Auto-Scale</span>
+                    </label>
+
+                    <button class="graph-btn" data-i18n="plot" onclick="plotGraph()">Plot Graph</button>
+
+                    <div class="canvas-container" style="height: 350px;">
+                        <canvas id="graphCanvas"></canvas>
+                    </div>
+
+                    <details class="tools-panel" id="graphToolsPanel">
+                        <summary data-i18n="conv_utils">Conversions & Utilities</summary>
+                        <div class="panel-content" style="margin-top: 15px;">
+                            <div class="conv-grid">
+                                <input type="number" id="convX" placeholder="X / R">
+                                <input type="number" id="convY" placeholder="Y / Theta">
+                            </div>
+                            <div class="conv-btns">
+                                <button data-i18n="cart_polar" onclick="cartToPolar()">Cartesian → Polar</button>
+                                <button data-i18n="polar_cart" onclick="polarToCart()">Polar → Cartesian</button>
+                                <button data-i18n="rad_deg" onclick="radToDeg()">Rad → Deg</button>
+                                <button data-i18n="deg_rad" onclick="degToRad()">Deg → Rad</button>
+                            </div>
+                            <div id="convResult"></div>
+                        </div>
+                    </details>
+                </div>
+
+                <!-- Trigonometry UI -->
+                <div id="trigUI" style="display: none; flex-direction: column;">
+                    <div class="trig-grid">
+                        <div>
+                            <label data-i18n="op_opposite">Opposite (a)</label>
+                            <input type="number" id="trigA" class="trig-input" placeholder="a" onchange="solveTriangle('a')">
+                        </div>
+                        <div>
+                            <label data-i18n="op_adjacent">Adjacent (b)</label>
+                            <input type="number" id="trigB" class="trig-input" placeholder="b" onchange="solveTriangle('b')">
+                        </div>
+                        <div>
+                            <label data-i18n="op_hypotenuse">Hypotenuse (c)</label>
+                            <input type="number" id="trigC" class="trig-input" placeholder="c" onchange="solveTriangle('c')">
+                        </div>
+                        <div>
+                            <label data-i18n="op_angle">Angle θ (Degrees)</label>
+                            <input type="number" id="trigAngle" class="trig-input" placeholder="θ" onchange="solveTriangle('angle')">
+                        </div>
+                    </div>
+                    
+                    <div class="trig-actions">
+                        <button onclick="undoTrig()" id="trigUndoBtn" disabled>Undo</button>
+                        <button onclick="resetTrig()">Reset</button>
+                    </div>
+
+                    <button class="trig-btn" data-i18n="btn_create_tri" onclick="createTriangle()">Create Triangle</button>
+
+                    <div class="canvas-container" style="height: 250px;">
+                        <canvas id="trigCanvas"></canvas>
+                    </div>
+
+                    <div class="trig-results" style="margin-top: 15px;">
+                        <div>
+                            <strong data-i18n="trig_ratios">Trig Ratios:</strong><br>
+                            sin θ = <span id="resSin">-</span><br>
+                            cos θ = <span id="resCos">-</span><br>
+                            tan θ = <span id="resTan">-</span>
+                        </div>
+                        <div>
+                            <strong data-i18n="trig_inverse">Inverse (Arc):</strong><br>
+                            arcsin(a/c) = <span id="resArcSin">-</span><br>
+                            arccos(b/c) = <span id="resArcCos">-</span><br>
+                            arctan(a/b) = <span id="resArcTan">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Trig Utility Section -->
+                    <details class="util-section" id="trigUtilPanel">
+                        <summary data-i18n="trig_util_title">Trigonometry Utility Calculator</summary>
+                        
+                        <div class="panel-content">
+                            <div class="util-grid">
+                                <div class="util-row">
+                                    <div>
+                                        <label style="font-size: 0.8rem; margin-bottom: 5px; display: block;" data-i18n="deg_to_ratio">Degrees to Ratio</label>
+                                        <input type="number" id="utilDegIn" placeholder="Enter Angle (Degrees)">
+                                    </div>
+                                    <button class="trig-btn" data-i18n="btn_calculate" onclick="calcDegToRatio()" style="margin-bottom: 0;">Calculate</button>
+                                </div>
+                                
+                                <div class="util-row">
+                                    <div>
+                                        <label style="font-size: 0.8rem; margin-bottom: 5px; display: block;" data-i18n="ratio_to_deg">Ratio to Degrees</label>
+                                        <select id="utilFuncSel" style="margin-bottom: 5px;">
+                                            <option value="asin">arcsin (sin⁻¹)</option>
+                                            <option value="acos">arccos (cos⁻¹)</option>
+                                            <option value="atan">arctan (tan⁻¹)</option>
+                                        </select>
+                                        <input type="number" id="utilRatioIn" placeholder="Enter Ratio Value">
+                                    </div>
+                                    <button class="trig-btn" data-i18n="btn_calculate" onclick="calcRatioToDeg()" style="margin-bottom: 0;">Calculate</button>
+                                </div>
+                            </div>
+                            
+                            <div id="utilResult">-</div>
+                        </div>
+                    </details>
+                </div>
+            </div>
+
+            <!-- Custom Theme Panel -->
+            <div class="custom-panel" id="customPanel">
+                <button class="close-panel" onclick="toggleCustomPanel()">×</button>
+                <label><span data-i18n="bg">Background</span> <input type="color" id="colorBg" value="#f0f2f5" oninput="applyCustomTheme()" onchange="commitThemeChange()"></label>
+                <label><span data-i18n="calc">Calculator</span> <input type="color" id="colorCalc" value="#ffffff" oninput="applyCustomTheme()" onchange="commitThemeChange()"></label>
+                <label><span data-i18n="keys">Keys</span> <input type="color" id="colorKey" value="#ffffff" oninput="applyCustomTheme()" onchange="commitThemeChange()"></label>
+                <label><span data-i18n="text">Text</span> <input type="color" id="colorText" value="#1a1a1a" oninput="applyCustomTheme()" onchange="commitThemeChange()"></label>
+                <label><span data-i18n="accent">Accent</span> <input type="color" id="colorAccent" value="#2563eb" oninput="applyCustomTheme()" onchange="commitThemeChange()"></label>
+                <label><span data-i18n="clear">Clear (C)</span> <input type="color" id="colorClear" value="#dc2626" oninput="applyCustomTheme()" onchange="commitThemeChange()"></label>
+                
+                <label style="grid-column: span 2; display: flex; flex-direction: column; align-items: flex-start; gap: 5px;">
+                    <span data-i18n="radius">Corner Radius</span>: <span id="radiusVal">8px</span>
+                    <input type="range" id="radiusSlider" min="0" max="25" value="8" oninput="handleSliderChange()" onchange="commitThemeChange()">
+                </label>
+
+                <!-- Graph Theme Customization -->
+                <div style="grid-column: span 2; margin-top: 10px; border-top: 1px solid var(--key-border); padding-top: 10px;">
+                    <strong style="display: block; margin-bottom: 10px; font-size: 0.85rem;" data-i18n="graph_theme">Graph Theme</strong>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <label><span data-i18n="graph_line">Line Color</span> <input type="color" id="colorGraphLine" value="#2563eb" oninput="applyCustomTheme()" onchange="commitThemeChange()"></label>
+                        <label><span data-i18n="graph_bg">Graph BG</span> <input type="color" id="colorGraphBg" value="#f8f9fa" oninput="applyCustomTheme()" onchange="commitThemeChange()"></label>
+                        <label style="grid-column: span 2;"><span data-i18n="graph_grid">Grid Color</span> <input type="color" id="colorGraphGrid" value="#d1d5db" oninput="applyCustomTheme()" onchange="commitThemeChange()"></label>
+                    </div>
+                </div>
+
+                <!-- Background Decoration Colors -->
+                <div style="grid-column: span 2; margin-top: 10px; border-top: 1px solid var(--key-border); padding-top: 10px;">
+                    <strong style="display: block; margin-bottom: 10px; font-size: 0.85rem;">Background Crosses</strong>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <label><span>Color 1</span> <input type="color" id="colorCross1" value="#2563eb" oninput="applyCustomTheme()" onchange="commitThemeChange()"></label>
+                        <label><span>Color 2</span> <input type="color" id="colorCross2" value="#3b82f6" oninput="applyCustomTheme()" onchange="commitThemeChange()"></label>
+                    </div>
+                </div>
+
+                <div class="custom-actions">
+                    <button onclick="undoTheme()" id="undoBtn" disabled>Undo</button>
+                    <button onclick="saveTheme()">Save Theme</button>
+                    <button onclick="resetTheme()">Reset Default</button>
+                </div>
+                <div class="storage-note">
+                    Note: Themes are saved locally to this browser.
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Footer -->
+    <footer class="credit">
+        <div class="main">Made by Aether977 from Github</div>
+        <a href="https://github.com/Aether977" target="_blank" class="credit-btn">Check out the creator</a>
+    </footer>
+    <script src="js/script.js"></script>
+</body>
+</html>
